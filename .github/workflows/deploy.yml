@@ -1,0 +1,39 @@
+name: Deploy With Deployer
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: [self-hosted, deployer, php]
+
+    env:
+      SERVER_IP: ${{ secrets.SERVER_IP }}
+      SERVER_PORT: ${{ secrets.SERVER_PORT }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install project dependencies
+        run: |
+          composer install --prefer-dist --no-dev --no-scripts --ignore-platform-reqs
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H -p $SERVER_PORT $SERVER_IP >> ~/.ssh/known_hosts
+          ssh-keyscan -H -p 22 10.0.0.1 >> ~/.ssh/known_hosts
+
+      - name: Deploy with Deployer
+        run: |
+          dep --file=deploy.php deploy production
+
+      - name: Restart services
+        run: |
+          ssh -o StrictHostKeyChecking=no infoadm@10.0.0.1 \
+            "sudo ee site restart bedrock.devmasnaodev.com"

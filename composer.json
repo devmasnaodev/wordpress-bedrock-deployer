@@ -1,0 +1,64 @@
+{
+  "name": "rodrigo-gpereira/wordpress-bedrock-deployer",
+  "type": "project",
+  "license": "MIT",
+  "description": "Projeto de exemplo utilizando WordPress com Bedrock e GitHub Actions",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "Rodrigo Gomes",
+      "email": "rodrigo.dev.ux@outlook.com"
+    }
+  ],
+  "keywords": [
+    "bedrock", "composer", "roots", "wordpress", "gh-actions", "deployer"
+  ],
+  "support": {
+    "issues": "https://github.com/devmasnaodev/wordpress-bedrock-deployer/issues"
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://wpackagist.org",
+      "only": ["wpackagist-plugin/*", "wpackagist-theme/*"]
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "composer/installers": "^2.2",
+    "vlucas/phpdotenv": "^5.5",
+    "oscarotero/env": "^2.1",
+    "roots/bedrock-autoloader": "^1.0",
+    "roots/bedrock-disallow-indexing": "^2.0",
+    "roots/wordpress": "6.8.3",
+    "roots/wp-config": "1.0.0",
+    "wpackagist-theme/twentytwentyfive": "^1.0"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest",
+    "laravel/pint": "^1.18",
+    "deployer/deployer": "^7.5"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "allow-plugins": {
+      "composer/installers": true,
+      "roots/wordpress-core-installer": true
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "extra": {
+    "installer-paths": {
+      "web/app/mu-plugins/{$name}/": ["type:wordpress-muplugin"],
+      "web/app/plugins/{$name}/": ["type:wordpress-plugin"],
+      "web/app/themes/{$name}/": ["type:wordpress-theme"]
+    },
+    "wordpress-install-dir": "web/wp"
+  },
+  "scripts": {
+    "lint": "pint --test",
+    "lint:fix": "pint"
+  }
+}
