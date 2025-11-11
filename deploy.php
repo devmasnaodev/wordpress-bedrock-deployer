@@ -89,7 +89,7 @@ host('production')
     ->setHostname($server_ip)
     ->setPort($server_port)
     ->set('remote_user', 'www-data')
-    ->set('deploy_path', '/var/www/deployer.devmasnaodev.com/htdocs')
+    ->set('deploy_path', '/var/www/bedrock.devmasnaodev.com/htdocs')
     ->set('branch', 'main');
 
 // Host - Staging
@@ -101,7 +101,7 @@ if (!empty($staging_ip) && !empty($staging_port)) {
         ->setHostname($staging_ip)
         ->setPort($staging_port)
         ->set('remote_user', 'www-data')
-        ->set('deploy_path', '/var/www/deployer.devmasnaodev.com/htdocs')
+        ->set('deploy_path', '/var/www/bedrock.devmasnaodev.com/htdocs')
         ->set('branch', 'develop');
 }
 
