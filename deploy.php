@@ -36,10 +36,6 @@ set('application', 'WordPress Bedrock');
 set('user', 'www-data');
 set('keep_releases', 5);
 
-// Desabilitar git (modo CI)
-set('repository', '.');
-set('git_strategy', false);
-
 // Task customizada para upload (substitui a padrão)
 task('deploy:update_code', function () {
     // Garantir que o diretório release existe
@@ -69,6 +65,48 @@ task('deploy:update_code', function () {
     upload('.', '{{release_path}}', [
         'options' => $rsyncOptions
     ]);
+    
+    // Obter informações do commit
+    $commitSha = getenv('COMMIT_SHA');
+    
+    // Se não estiver no CI, usar git local
+    if (empty($commitSha) && file_exists(__DIR__ . '/.git')) {
+        $commitSha = trim(shell_exec('git rev-parse HEAD 2>/dev/null') ?: '');
+    }
+    
+    $revision = $commitSha ? substr($commitSha, 0, 8) : 'unknown';
+    
+    // Criar arquivo REVISION com o commit
+    run('echo ' . escapeshellarg($revision) . ' > {{release_path}}/REVISION');
+
+});
+
+// Task para atualizar o releases_log com o autor correto
+task('deploy:update_releases_log', function () {
+    $commitAuthor = getenv('COMMIT_AUTHOR');
+    
+    // Se não estiver no CI, usar git local
+    if (empty($commitAuthor) && file_exists(__DIR__ . '/.git')) {
+        $commitAuthor = trim(shell_exec('git log -1 --pretty=format:"%an" 2>/dev/null') ?: '');
+    }
+    
+    if (!empty($commitAuthor)) {
+        // Atualizar o último registro no releases_log com o autor correto
+        $content = run('cat {{deploy_path}}/.dep/releases_log');
+        $lines = explode("\n", trim($content));
+        
+        if (!empty($lines)) {
+            $lastLine = array_pop($lines);
+            $data = json_decode($lastLine, true);
+            
+            if ($data) {
+                $data['user'] = $commitAuthor;
+                $lines[] = json_encode($data);
+                
+                run('echo ' . escapeshellarg(implode("\n", $lines)) . ' > {{deploy_path}}/.dep/releases_log');
+            }
+        }
+    }
 });
 
 // Configurações WordPress
@@ -116,6 +154,7 @@ task('wordpress:cache:flush', function () {
 });
 
 // Hooks
+after('deploy:update_code', 'deploy:update_releases_log');
 after('deploy:symlink', 'wordpress:update-db');
 after('wordpress:update-db', 'wordpress:cache:flush');
 after('deploy:failed', 'deploy:unlock');
