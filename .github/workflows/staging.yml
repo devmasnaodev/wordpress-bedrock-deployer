@@ -1,18 +1,19 @@
-name: Deploy to Production
+name: Deploy to Staging
 
 on:
   push:
     branches:
-      - main
+      - develop
+  workflow_dispatch:
 
 jobs:
   deploy:
-    name: Deploy to Production
-    runs-on: [self-hosted, deployer, php]
+    name: Deploy to Staging
+    runs-on: [self-hosted, deployer, php, staging]
 
     env:
-      SERVER_IP: ${{ secrets.SERVER_IP }}
-      SERVER_PORT: ${{ secrets.SERVER_PORT }}
+      STAGING_IP: ${{ secrets.STAGING_IP }}
+      STAGING_PORT: ${{ secrets.STAGING_PORT }}
 
     steps:
       - name: Checkout code
@@ -25,12 +26,12 @@ jobs:
       - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H -p $SERVER_PORT $SERVER_IP >> ~/.ssh/known_hosts
+          ssh-keyscan -H -p $STAGING_PORT $STAGING_IP >> ~/.ssh/known_hosts
           ssh-keyscan -H -p 22 10.0.0.1 >> ~/.ssh/known_hosts
 
       - name: Deploy with Deployer
         run: |
-          dep --file=deploy.php deploy production
+          dep --file=deploy.php deploy staging
 
       - name: Restart services
         run: |
